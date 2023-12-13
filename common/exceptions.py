@@ -1,5 +1,5 @@
 class AppException(Exception):
-    """Base class for Exception"""
+    """Base class for App Exception"""
 
     def __init__(self, detail: str):
         self.detail = detail

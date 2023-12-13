@@ -4,7 +4,7 @@ from server.endpoints.images import router as images_router
 import time
 from common.exceptions import UnknownClientException, AppException
 from common.logger import AppLogger
-
+import json
 
 logger = AppLogger(__name__)
 settings = get_settings()
@@ -12,7 +12,18 @@ EXCEPTION_TO_STATUS_CODE_MAPPING = {
     UnknownClientException: status.HTTP_401_UNAUTHORIZED
 }
 
-app = FastAPI(debug=settings.debug)
+
+app = FastAPI(
+    debug=settings.debug)
+
+
+# Very Imp Note: Exception handlers don't get triggered from middlewares
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    """Exception handler for Exceptions"""
+    status_code = EXCEPTION_TO_STATUS_CODE_MAPPING[type(exc)]
+    return Response(content=json.dumps({"error": exc.detail}),
+                    status_code=status_code)
 
 
 @app.on_event('startup')
@@ -25,17 +36,6 @@ async def shutdown():
     pass
 
 
-@app.exception_handler(AppException)
-def exception_handler(request: Request, exc: AppException):
-    """Exception handler for Exceptions"""
-    if exc is UnknownClientException:
-        logger.info(
-            f"UnknownClientException: {request.client} | {request.url}")
-    status_code = EXCEPTION_TO_STATUS_CODE_MAPPING[type(exc)]
-    return Response(content={"error": exc.detail},
-                    status_code=status_code)
-
-
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -45,13 +45,18 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-if settings.env == 'prod':
-    @app.middleware('http')
-    async def check_rapid_api_secret(request: Request, call_next):
-        if (request.headers.get('X-RapidAPI-Proxy-Secret')
-                == settings.rapid_api_secret):
-            response = await call_next(request)
-            return response
-        raise UnknownClientException("Could not recognize your client.")
+@app.middleware('http')
+async def check_rapid_api_secret(request: Request, call_next):
+    if (request.headers.get('X-RapidAPI-Proxy-Secret')
+            == settings.rapid_api_secret):
+        response = await call_next(request)
+        return response
+    else:
+        logger.info(
+            f"UnknownClient: {request.client} | {request.url}")
+        return Response(
+            json.dumps({"msg": "Unauthorized to perform this request"}),
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
 
 app.include_router(images_router, prefix='/images')
