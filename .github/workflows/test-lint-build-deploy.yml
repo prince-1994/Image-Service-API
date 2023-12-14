@@ -16,9 +16,9 @@ jobs:
       - name: Install libraries
         run: pip3 install -r requirements.txt
       - name: Test
-        run: python -m pytest tests
+        run: python3 -m pytest tests
       - name: Lint
-        run: python -m flake8 --exclude .venv
+        run: python3 -m flake8 --exclude .venv
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
