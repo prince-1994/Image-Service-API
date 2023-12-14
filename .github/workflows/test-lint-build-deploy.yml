@@ -43,7 +43,7 @@ jobs:
             ${{ secrets.RUNTIME_ENV_SECRETS }} > .env
             docker stop image-service-api || true
             docker rm image-service-api || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }}
+            docker pull ${{ secrets.DOCKERHUB_USER }}/image-service-api:${{ github.sha }}
             docker run -d --name image-service-api --env-file .env -p 80:80 \
             ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }} \
             sh -c "uvicorn server.main:app --host 0.0.0.0 --port 80"
