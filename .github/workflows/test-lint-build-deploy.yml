@@ -33,17 +33,17 @@ jobs:
           context: .
           push: true
           tags: ysahudev/image-service-api:${{ github.sha }}
-      # - name: Deploy to EC2 instance
-      #   uses: appleboy/ssh-action@master
-      #   with: 
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USERNAME }}
-      #     key: ${{ secrets.EC2_PRIVATE_KEY }}
-      #     script: |
-      #       ${{ secrets.RUNTIME_ENV_SECRETS }} > .env
-      #       docker stop image-service-api || true
-      #       docker rm image-service-api || true
-      #       docker pull ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }}
-      #       docker run -d --name image-service-api --env-file .env -p 80:80 \
-      #       ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }} \
-      #       sh -c "uvicorn server.main:app --host 0.0.0.0 --port 80"
+      - name: Deploy to EC2 instance
+        uses: appleboy/ssh-action@master
+        with: 
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            ${{ secrets.RUNTIME_ENV_SECRETS }} > .env
+            docker stop image-service-api || true
+            docker rm image-service-api || true
+            docker pull ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }}
+            docker run -d --name image-service-api --env-file .env -p 80:80 \
+            ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }} \
+            sh -c "uvicorn server.main:app --host 0.0.0.0 --port 80"
