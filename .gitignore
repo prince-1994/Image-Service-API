@@ -1,6 +1,6 @@
 .env.*
-**/__pycache__/**
-**/.venv/**
+**/__pycache__
+**/.venv
 **/tmp/**
 mongo-init.*
 .pytest_cache

@@ -1,0 +1,52 @@
+name: Test and Deploy Image Service API
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test-lint-build:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create and activate venv
+        run: python -m venv .venv && source .venv/bin/activate
+      - name: Install libraries
+        run: pip install -r requirements.txt
+      - name: Test
+        run: pytest tests
+      - name: Lint
+        run: flake8 --exclude .venv
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ysahudev/image-service-api:${{ github.sha }}
+  
+
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Deploy to EC2 instance
+        uses: appleboy/ssh-action
+        with: 
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            ${{ secrets.RUNTIME_ENV_SECRETS }} > .env
+            docker stop image-service-api || true
+            docker rm image-service-api || true
+            docker pull ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }}
+            docker run -d --name image-service-api --env-file .env -p 80:80 \
+            ${{ secrets.DOCKER_USERNAME }}/image-service-api:${{ github.sha }} \
+            sh -c "uvicorn server.main:app --host 0.0.0.0 --port 80"
+
