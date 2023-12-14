@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  test-lint-build:
+  test-lint-build-deploy:
     runs-on: self-hosted
     steps:
       - name: Checkout code
@@ -30,11 +30,6 @@ jobs:
           context: .
           push: true
           tags: ysahudev/image-service-api:${{ github.sha }}
-  
-
-  deploy:
-    runs-on: self-hosted
-    steps:
       - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
         with: 
