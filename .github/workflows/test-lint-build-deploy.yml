@@ -41,7 +41,7 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             mkdir -p image-service-api && cd image-service-api
-            echo "${{ secrets.RUNTIME_ENV_SECRETS }}" > image-service-api/.env
+            echo "${{ secrets.RUNTIME_ENV_SECRETS }}" > .env
             export $(cat .env | xargs)
             docker stop image-service-api || true
             docker rm image-service-api || true
