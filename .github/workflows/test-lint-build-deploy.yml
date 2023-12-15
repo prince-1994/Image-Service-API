@@ -50,6 +50,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USER }}/image-service-api:${{ github.sha }} \
             sh -c "uvicorn server.main:app --host 0.0.0.0 --port $PORT"
       - name: Update Nginx config and restart
+        uses: appleboy/ssh-action@master
         with: 
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
