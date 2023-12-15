@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  test-lint-build-deploy:
+  test-lint-build:
     runs-on: self-hosted
     steps:
       - name: Checkout code
@@ -33,6 +33,11 @@ jobs:
           context: .
           push: true
           tags: ysahudev/image-service-api:${{ github.sha }}
+
+  deploy-to-ec2:
+    runs-on: self-hosted
+    needs: [test-lint-build]
+    steps:
       - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
         with: 
@@ -49,6 +54,11 @@ jobs:
             docker run -d --rm --name image-service-api --env-file .env -p $PORT:$PORT \
             ${{ secrets.DOCKERHUB_USER }}/image-service-api:${{ github.sha }} \
             sh -c "uvicorn server.main:app --host 0.0.0.0 --port $PORT"
+
+  nginx-update:
+    runs-on: self-hosted
+    needs: [deploy]
+    steps:
       - name: Update Nginx config and restart
         uses: appleboy/ssh-action@master
         with: 
