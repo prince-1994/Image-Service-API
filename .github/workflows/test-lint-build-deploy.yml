@@ -57,7 +57,7 @@ jobs:
 
   nginx-update:
     runs-on: self-hosted
-    needs: [deploy]
+    needs: [deploy-to-ec2]
     steps:
       - name: Update Nginx config and restart
         uses: appleboy/ssh-action@master
