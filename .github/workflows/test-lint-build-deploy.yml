@@ -40,10 +40,24 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            echo "${{ secrets.RUNTIME_ENV_SECRETS }}" > .env
+            mkdir -p image-service-api && cd image-service-api
+            echo "${{ secrets.RUNTIME_ENV_SECRETS }}" > image-service-api/.env
+            export $(cat .env | xargs)
             docker stop image-service-api || true
             docker rm image-service-api || true
             docker pull ${{ secrets.DOCKERHUB_USER }}/image-service-api:${{ github.sha }}
-            docker run -d --rm --name image-service-api --env-file .env -p 80:80 \
+            docker run -d --rm --name image-service-api --env-file .env -p $PORT:$PORT \
             ${{ secrets.DOCKERHUB_USER }}/image-service-api:${{ github.sha }} \
-            sh -c "uvicorn server.main:app --host 0.0.0.0 --port 80"
+            sh -c "uvicorn server.main:app --host 0.0.0.0 --port $PORT"
+      - name: Update Nginx config and restart
+        with: 
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd image-service-api
+            export $(cat .env | xargs)
+            envsubstr < /etc/nginx/nginx.template.conf > $DOMAIN
+            cp $DOMAIN /etc/nginx/sites-available/$DOMAIN
+            ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
+            sudo systemctl restart nginx

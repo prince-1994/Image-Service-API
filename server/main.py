@@ -60,3 +60,8 @@ async def check_rapid_api_secret(request: Request, call_next):
         )
 
 app.include_router(images_router, prefix='/images')
+
+
+@app.get('/ping')
+def ping():
+    return Response(status_code=status.HTTP_200_OK)
