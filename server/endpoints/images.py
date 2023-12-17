@@ -4,8 +4,11 @@ from PIL import Image
 from app.images.usecases import edit
 import os
 import uuid
+from common.logger import AppLogger
+import json
 
 router = APIRouter()
+logger = AppLogger(__name__)
 
 
 def remove_file(path: str) -> None:
@@ -22,6 +25,12 @@ async def edit_file(
     background_tasks: BackgroundTasks,
     format: str = "jpg"
 ):
+    if request.state.user != 'rapidapi':
+        logger.info(
+                f"UnknownClient: {request.client} | {request.url}")
+        return Response(
+            json.dumps({"msg": "Unauthorized to perform this request"}),
+            status_code=status.HTTP_401_UNAUTHORIZED)
     if format not in valid_image_formats:
         return Response(
             {"msg": "Invalid format for output image"},
