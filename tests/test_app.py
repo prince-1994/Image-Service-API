@@ -43,17 +43,17 @@ def test_edit_api():
     response = client.get("/images/edit", headers=headers)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
     response = client.post("/images/edit")
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    response = client.post("/images/edit", headers=wrong_headers)
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    response = client.post("/images/edit", headers=headers)
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    file_path = "tests/test-image-1-scenery.jpeg"
-    response = client.post("/images/edit",
-                           files={"file": open(file_path, "rb")})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    response = client.post("/images/edit", headers=wrong_headers)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    response = client.post("/images/edit", headers=headers)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     file_path = "tests/test-image-1-scenery.jpeg"
+    with open(file_path, 'rb') as f:
+        buff = f.read()
+    response = client.post("/images/edit", content=buff)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     response = client.post(
-        "/images/edit", headers=headers, files={"file": open(file_path, "rb")}
+        "/images/edit", headers=headers, content=buff
     )
     assert response.status_code == status.HTTP_200_OK

@@ -31,28 +31,32 @@ async def edit_file(
             json.dumps({"msg": "Invalid format for output image"}),
             status_code=status.HTTP_400_BAD_REQUEST
             )
+    response = None
     try:
         cur_id = str(uuid.uuid4())
         input_filepath = f"tmp/images/input-{cur_id}"
+        output_filepath = f"tmp/images/output-{cur_id}.{format}"
         with open(input_filepath, 'wb') as f:
             f.write(await request.body())
         logger.info(cur_id)
         img = Image.open(input_filepath)
         edited_img = edit(img, request.query_params)
-        output_filepath = f"tmp/images/output-{cur_id}.{format}"
         edited_img.save(output_filepath)
-        edited_img.show()
-        background_tasks.add_task(os.unlink, input_filepath)
-        background_tasks.add_task(os.unlink, output_filepath)
-        return FileResponse(output_filepath)
+        response = FileResponse(output_filepath)
     except OSError:
-        return Response(
+        response = Response(
             json.dumps({"msg": "Invalid request - Maybe image is not valid"}),
             status_code=status.HTTP_400_BAD_REQUEST
             )
     except Exception as e:
         logger.error(e)
-        return Response(
+        response = Response(
             json.dumps({"msg": "Something went wrong"}),
             status_code=status.HTTP_400_BAD_REQUEST
             )
+    finally:
+        if os.path.exists(input_filepath):
+            background_tasks.add_task(os.unlink, input_filepath)
+        if os.path.exists(output_filepath):
+            background_tasks.add_task(os.unlink, output_filepath)
+    return response
