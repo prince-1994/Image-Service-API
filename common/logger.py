@@ -7,7 +7,7 @@ class AppLogger(Logger):
     def __init__(self, name: str, level=0) -> None:
         super().__init__(name, level)
         # Initial construct.
-        self.format = f"{name} | %(asctime)s | %(levelname)s | %(message)s"
+        self.format = f"%(levelname)s:\t %(asctime)s | {name} | %(message)s"
 
         # Logger configuration.
         self.console_formatter = logging.Formatter(self.format)

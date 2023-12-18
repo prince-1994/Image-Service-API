@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, Request, BackgroundTasks, status
+from fastapi import APIRouter, Request, BackgroundTasks, status
 from fastapi.responses import FileResponse, Response
 from PIL import Image
 from app.images.usecases import edit
@@ -11,19 +11,14 @@ router = APIRouter()
 logger = AppLogger(__name__)
 
 
-def remove_file(path: str) -> None:
-    os.unlink(path)
-
-
 valid_image_formats = {"png", "jpeg", "jpg", "tiff", "bmp", "ppm"}
 
 
 @router.post("/edit")
 async def edit_file(
-    file: UploadFile,
     request: Request,
     background_tasks: BackgroundTasks,
-    format: str = "jpg"
+    format: str = "png"
 ):
     if request.state.user != 'rapidapi':
         logger.info(
@@ -33,18 +28,31 @@ async def edit_file(
             status_code=status.HTTP_401_UNAUTHORIZED)
     if format not in valid_image_formats:
         return Response(
-            {"msg": "Invalid format for output image"},
+            json.dumps({"msg": "Invalid format for output image"}),
             status_code=status.HTTP_400_BAD_REQUEST
             )
     try:
-        img = Image.open(file.file)
+        cur_id = str(uuid.uuid4())
+        input_filepath = f"tmp/images/input-{cur_id}"
+        with open(input_filepath, 'wb') as f:
+            f.write(await request.body())
+        logger.info(cur_id)
+        img = Image.open(input_filepath)
         edited_img = edit(img, request.query_params)
-        file_path = f"tmp/images/{str(uuid.uuid4())}.{format}"
-        edited_img.save(file_path)
-        background_tasks.add_task(remove_file, file_path)
-        return FileResponse(file_path)
+        output_filepath = f"tmp/images/output-{cur_id}.{format}"
+        edited_img.save(output_filepath)
+        edited_img.show()
+        background_tasks.add_task(os.unlink, input_filepath)
+        background_tasks.add_task(os.unlink, output_filepath)
+        return FileResponse(output_filepath)
     except OSError:
         return Response(
-            {"msg": "Invalid request - Maybe image is not valid"},
+            json.dumps({"msg": "Invalid request - Maybe image is not valid"}),
+            status_code=status.HTTP_400_BAD_REQUEST
+            )
+    except Exception as e:
+        logger.error(e)
+        return Response(
+            json.dumps({"msg": "Something went wrong"}),
             status_code=status.HTTP_400_BAD_REQUEST
             )
