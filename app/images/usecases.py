@@ -7,10 +7,10 @@ logger = AppLogger(__name__)
 
 editing_dict = dict(
     # Image Enhancer functions
-    bri=lambda img, val: ImageEnhance.Brightness(img).enhance(int(val)),
-    col=lambda img, val: ImageEnhance.Color(img).enhance(int(val)),
-    con=lambda img, val: ImageEnhance.Contrast(img).enhance(int(val)),
-    sharp=lambda img, val: ImageEnhance.Sharpness(img).enhance(int(val)),
+    bri=lambda img, val: ImageEnhance.Brightness(img).enhance(float(val)),
+    col=lambda img, val: ImageEnhance.Color(img).enhance(float(val)),
+    con=lambda img, val: ImageEnhance.Contrast(img).enhance(float(val)),
+    sharp=lambda img, val: ImageEnhance.Sharpness(img).enhance(float(val)),
 )
 
 
