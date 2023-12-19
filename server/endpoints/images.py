@@ -34,16 +34,17 @@ async def edit_file(
     response = None
     try:
         cur_id = str(uuid.uuid4())
+        logger.info(os.listdir('tmp/images'))
         input_filepath = f"tmp/images/input-{cur_id}"
         output_filepath = f"tmp/images/output-{cur_id}.{format}"
         with open(input_filepath, 'wb') as f:
             f.write(await request.body())
-        logger.info(cur_id)
         img = Image.open(input_filepath)
         edited_img = edit(img, request.query_params)
         edited_img.save(output_filepath)
         response = FileResponse(output_filepath)
-    except OSError:
+    except OSError as e:
+        logger.error(e)
         response = Response(
             json.dumps({"msg": "Invalid request - Maybe image is not valid"}),
             status_code=status.HTTP_400_BAD_REQUEST

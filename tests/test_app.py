@@ -51,7 +51,7 @@ def test_edit_api():
     file_path = "tests/test-image-1-scenery.jpeg"
     with open(file_path, 'rb') as f:
         buff = f.read()
-    response = client.post("/images/edit", content=buff)
+    response = client.post("/images/edit?format=jpeg", content=buff)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     response = client.post(
         "/images/edit", headers=headers, content=buff
