@@ -9,7 +9,9 @@ help:
 .PHONY: run
 ## run: runs the application
 run:
-	@ docker-compose up
+	@ docker-compose up && docker-compose rm -fsv
+# @ docker-compose up
+	
 
 .PHONY: cleanup
 ## cleanup: removes MongoDB and associated volumes

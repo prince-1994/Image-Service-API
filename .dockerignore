@@ -1,4 +1,12 @@
-.env.*
+
 **/__pycahe__/**
-**/.venv/**
-**/tmp/**
+tmp
+tests
+.venv
+.env.*
+.*ignore
+*.yml
+*file
+mongo-init.js
+README.md
+requirements.dev.txt
