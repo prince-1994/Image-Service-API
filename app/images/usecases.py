@@ -1,4 +1,4 @@
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageOps
 from common.logger import AppLogger
 
 
@@ -11,6 +11,13 @@ editing_dict = dict(
     col=lambda img, val: ImageEnhance.Color(img).enhance(float(val)),
     con=lambda img, val: ImageEnhance.Contrast(img).enhance(float(val)),
     sharp=lambda img, val: ImageEnhance.Sharpness(img).enhance(float(val)),
+
+    # Image operations functions
+    rotate=lambda img, val: img.rotate(float(val)),
+    mirror=lambda img, val: ImageOps.mirror(img) if bool(val) else img,
+    flip=lambda img, val: ImageOps.flip(img) if bool(val) else img
+
+    # Image write text function
 )
 
 
