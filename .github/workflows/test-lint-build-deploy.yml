@@ -68,7 +68,8 @@ jobs:
           script: |
             cd image-service-api
             export $(cat .env | xargs)
-            envsubst < /etc/nginx/nginx.template.conf > $DOMAIN
+            cur -o https://raw.githubusercontent.com/prince-1994/Image-Service-API/master/nginx.conf
+            envsubst < nginx.conf > $DOMAIN
             sudo cp $DOMAIN /etc/nginx/sites-available/$DOMAIN
             sudo ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
             sudo systemctl restart nginx
