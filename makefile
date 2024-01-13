@@ -17,7 +17,6 @@ run:
 ## cleanup: removes MongoDB and associated volumes
 cleanup:
 	@ docker-compose down
-	@ docker volume rm $$(docker volume ls -q)
 
 .PHONY: test
 ## test: runs unit tests
